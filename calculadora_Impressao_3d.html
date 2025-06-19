@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora Impressão 3D - Creality K1</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    /* CALCULADORA */
+    .calculadora {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .calculadora label {
+      display: flex;
+      flex-direction: column;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .calculadora input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .botoes-acoes {
+      display: flex;
+      justify-content: flex-start;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .botoes-acoes button {
+      width: 250px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .botoes-acoes button:hover {
+      background-color: #0056b3;
+    }
+
+    /* TABELAS */
+    .tabela-tecnica,
+    .orcamento-cliente {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .tabela-wrapper {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      min-width: 600px;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #e9ecef;
+      font-size: 15px;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      background-color: #f1f1f1;
+      font-size: 16px;
+    }
+
+    .tabela-tecnica th:last-child,
+    .tabela-tecnica td:last-child {
+      width: 90px;
+    }
+
+    .tabela-tecnica button {
+      background-color: #dc3545;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .tabela-tecnica button:hover {
+      background-color: #a71d2a;
+    }
+
+    #orcamentoCliente {
+      font-size: 18px;
+      width: 100% !important;
+      max-width: none !important;
+      transform: scale(1);
+    }
+
+    @media (max-width: 600px) {
+      .calculadora {
+        justify-content: center;
+      }
+
+      .calculadora label {
+        width: 100%;
+      }
+
+      .botoes-acoes button {
+        width: 100%;
+      }
+
+      table,
+      th,
+      td {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Calculadora Impressão 3D</h1>
+
+  <div class="calculadora">
+    <label>
+      Nome da Peça:
+      <input type="text" id="nomePeca">
+    </label>
+    <label>
+      Peso da Peça (g):
+      <input type="number" id="pesoPeca">
+    </label>
+    <label>
+      Tempo de Impressão (horas):
+      <input type="text" id="tempoImpressao" placeholder="ex: 2:05 ou 2.08">
+    </label>
+    <label>
+      Preço do Rolo (R$):
+      <input type="number" id="precoRolo" value="65">
+    </label>
+    <label>
+      Peso do Rolo (g):
+      <input type="number" id="pesoRolo" value="1000">
+    </label>
+    <label>
+      Consumo da Impressora (W):
+      <input type="number" id="consumoWatts" value="150">
+    </label>
+    <label>
+      Valor do kWh (R$):
+      <input type="number" id="valorKWh" value="0.80">
+    </label>
+    <label>
+      Valor da Impressora (R$):
+      <input type="number" id="valorImpressora" value="4000">
+    </label>
+    <label>
+      Vida Útil da Impressora (horas):
+      <input type="number" id="vidaUtilHoras" value="2000">
+    </label>
+    <label>
+      Tempo de Fatiamento (min):
+      <input type="number" id="tempoFatiamento" value="15">
+    </label>
+    <label>
+      Tempo de Acabamento (min):
+      <input type="number" id="tempoAcabamento" value="15">
+    </label>
+    <label>
+      Valor da Hora de Trabalho (R$):
+      <input type="number" id="valorHoraTrabalho" value="40">
+    </label>
+    <label>
+      Margem de Lucro (%):
+      <input type="number" id="margemLucro" value="20">
+    </label>
+  </div>
+  <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">
+    ⚠️ Campos em branco serão considerados como <strong>0</strong> automaticamente.
+  </p>
+  <div class="botoes-acoes">
+    <button onclick="calcular()">Calcular</button>
+  </div>
+
+  <div class="tabela-tecnica">
+    <h2>Tabela Técnica</h2>
+    <div class="tabela-wrapper">
+      <table id="tabelaTecnica">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Filamento (R$)</th>
+            <th>Energia (R$)</th>
+            <th>Depreciação (R$)</th>
+            <th>Mão de Obra (R$)</th>
+            <th>Subtotal (R$)</th>
+            <th>Final (R$)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="corpoTecnico"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="orcamento-cliente" id="orcamentoCliente">
+    <h2>Orçamento de Impressão 3D</h2>
+    <p>Este orçamento contém os valores estimados de produção das peças listadas abaixo, já incluindo todos os custos
+      operacionais e margem de lucro.</p>
+    <div class="tabela-wrapper">
+      <table id="tabelaOrcamentoCliente">
+        <thead>
+          <tr>
+            <th>Nome da Peça</th>
+            <th>Peso (g)</th>
+            <th>Tempo (h)</th>
+            <th>Preço Final (R$)</th>
+          </tr>
+        </thead>
+        <tbody id="corpoOrcamentoCliente"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3"><strong>Total do Orçamento</strong></td>
+            <td id="orcamentoTotal">R$ 0,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="botoes-acoes">
+    <button onclick="gerarPDF()">Gerar PDF do Orçamento</button>
+    <button onclick="resetarFormulario()">Limpar Tudo</button>
+  </div>
+
+  <script>
+    let totalOrcamento = 0;
+
+    function calcular() {
+      const nome = document.getElementById('nomePeca').value.trim() || "Peça sem nome";
+      const peso = parseFloat(document.getElementById('pesoPeca').value) || 0;
+      const tempoRaw = (document.getElementById('tempoImpressao').value || "0").replace(",", ".");
+
+      const precoRolo = parseFloat(document.getElementById('precoRolo').value) || 0;
+      const pesoRolo = parseFloat(document.getElementById('pesoRolo').value) || 0;
+      const consumoWatts = parseFloat(document.getElementById('consumoWatts').value) || 0;
+      const valorKWh = parseFloat(document.getElementById('valorKWh').value) || 0;
+      const valorImpressora = parseFloat(document.getElementById('valorImpressora').value) || 0;
+      const vidaUtilHoras = parseFloat(document.getElementById('vidaUtilHoras').value) || 0;
+      const tempoFatiamento = parseFloat(document.getElementById('tempoFatiamento').value) || 0;
+      const tempoAcabamento = parseFloat(document.getElementById('tempoAcabamento').value) || 0;
+      const valorHoraTrabalho = parseFloat(document.getElementById('valorHoraTrabalho').value) || 0;
+      const margemLucro = parseFloat(document.getElementById('margemLucro').value) || 0;
+
+      // Conversão do tempo
+      let tempo = 0;
+      const tempoParts = tempoRaw.split(":");
+      if (tempoParts.length === 2) {
+        const horas = parseFloat(tempoParts[0]) || 0;
+        const minutos = parseFloat(tempoParts[1]) || 0;
+        tempo = horas + (minutos / 60);
+      } else {
+        tempo = parseFloat(tempoRaw) || 0;
+      }
+
+      // Cálculos
+      const custoFilamento = pesoRolo ? (precoRolo / pesoRolo) * peso : 0;
+      const consumoKW = consumoWatts / 1000;
+      const custoEnergia = consumoKW * tempo * valorKWh;
+      const custoDepreciacao = vidaUtilHoras ? (valorImpressora / vidaUtilHoras) * tempo : 0;
+      const custoMaoObra = ((tempoFatiamento + tempoAcabamento) / 60) * valorHoraTrabalho;
+      const subtotal = custoFilamento + custoEnergia + custoDepreciacao + custoMaoObra;
+      const precoFinal = subtotal * (1 + margemLucro / 100);
+
+      // Tabela do cliente
+      const tbodyCliente = document.getElementById("corpoOrcamentoCliente");
+      const rowCliente = tbodyCliente.insertRow();
+      rowCliente.insertCell().textContent = nome;
+      rowCliente.insertCell().textContent = peso;
+      rowCliente.insertCell().textContent = formatarTempoDecimal(tempo);
+      rowCliente.insertCell().textContent = precoFinal.toFixed(2);
+
+      totalOrcamento += precoFinal;
+      document.getElementById("orcamentoTotal").textContent = "R$ " + totalOrcamento.toFixed(2);
+
+      // Tabela técnica
+      const tecnica = document.getElementById("corpoTecnico");
+      const tRow = tecnica.insertRow();
+      tRow.insertCell().textContent = nome;
+      tRow.insertCell().textContent = custoFilamento.toFixed(2);
+      tRow.insertCell().textContent = custoEnergia.toFixed(2);
+      tRow.insertCell().textContent = custoDepreciacao.toFixed(2);
+      tRow.insertCell().textContent = custoMaoObra.toFixed(2);
+      tRow.insertCell().textContent = subtotal.toFixed(2);
+      tRow.insertCell().textContent = precoFinal.toFixed(2);
+
+      // Botão de remover
+      const btnCell = tRow.insertCell();
+      const btn = document.createElement("button");
+      btn.textContent = "Remover";
+      btn.onclick = function () {
+        const index = Array.from(tecnica.rows).indexOf(tRow);
+        tecnica.deleteRow(index);
+        tbodyCliente.deleteRow(index);
+        totalOrcamento -= precoFinal;
+        document.getElementById("orcamentoTotal").textContent = "R$ " + totalOrcamento.toFixed(2);
+      };
+      btnCell.appendChild(btn);
+    }
+
+
+    function resetarFormulario() {
+      // Limpa manualmente todos os campos
+      document.querySelectorAll(".calculadora input").forEach(input => {
+        input.value = input.defaultValue || "";
+      });
+
+      // Limpa as tabelas e o total
+      document.getElementById("corpoOrcamentoCliente").innerHTML = "";
+      document.getElementById("corpoTecnico").innerHTML = "";
+      document.getElementById("orcamentoTotal").textContent = "R$ 0,00";
+      totalOrcamento = 0;
+    }
+
+    function gerarPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const margem = 10;
+      let y = 20;
+
+      pdf.setFontSize(18);
+      pdf.text("Orçamento de Impressão 3D", margem, y);
+      y += 10;
+
+      pdf.setFontSize(12);
+      pdf.text("Este orçamento contém os valores estimados de produção das peças listadas abaixo,", margem, y);
+      y += 5;
+      pdf.text("já incluindo todos os custos operacionais.", margem, y);
+      y += 10;
+
+      const headers = ["Nome da Peça", "Peso (g)", "Tempo (h)", "Preço Final (R$)"];
+      const rows = [];
+
+      const corpo = document.querySelectorAll("#corpoOrcamentoCliente tr");
+      corpo.forEach(row => {
+        const cols = row.querySelectorAll("td");
+        const data = Array.from(cols).map(col => col.innerText);
+        rows.push(data);
+      });
+
+      const total = document.getElementById("orcamentoTotal").innerText;
+      const colWidths = [60, 40, 40, 50];
+
+      let x = margem;
+      headers.forEach((header, i) => {
+        pdf.text(header, x, y);
+        x += colWidths[i];
+      });
+      y += 7;
+
+      rows.forEach(row => {
+        x = margem;
+        row.forEach((cell, i) => {
+          pdf.text(String(cell), x, y);
+          x += colWidths[i];
+        });
+        y += 7;
+      });
+
+      pdf.setFont(undefined, 'bold');
+      pdf.text("Total:", margem + colWidths[0] + colWidths[1], y);
+      pdf.text(total, margem + colWidths[0] + colWidths[1] + 40, y);
+
+      pdf.save("orcamento-impressao3d.pdf");
+    }
+
+    function formatarTempoDecimal(decimal) {
+      const horas = Math.floor(decimal);
+      const minutos = Math.round((decimal - horas) * 60);
+      return `${horas}:${minutos.toString().padStart(2, '0')}`;
+    }
+  </script>
+</body>
+
+</html>
