@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora Impressão 3D Profissional</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .secao {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .secao h2 {
+      color: #667eea;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+      font-size: 1.5em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo label {
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .campo input,
+    .campo select,
+    .campo textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    .campo input:focus,
+    .campo select:focus,
+    .campo textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .campo textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .upload-logo {
+      border: 2px dashed #667eea;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .upload-logo:hover {
+      background-color: #f8f9ff;
+    }
+
+    .upload-logo input[type="file"] {
+      display: none;
+    }
+
+    .logo-preview {
+      max-width: 200px;
+      max-height: 100px;
+      margin: 10px auto;
+      display: none;
+    }
+
+    .logo-preview.show {
+      display: block;
+    }
+
+    .botoes-acoes {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 25px 0;
+    }
+
+    .botoes-acoes button {
+      min-width: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .botoes-acoes button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .botoes-acoes button.secundario {
+      background: #6c757d;
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
+
+    .botoes-acoes button.secundario:hover {
+      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
+    }
+
+    .tabela-wrapper {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      min-width: 800px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    tbody tr:hover {
+      background-color: #f8f9ff;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      background-color: #f1f3f9;
+      font-size: 16px;
+      color: #667eea;
+    }
+
+    .btn-remover {
+      background-color: #dc3545;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn-remover:hover {
+      background-color: #c82333;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .badge-info {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .alerta {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 4px;
+      color: #856404;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .secao {
+        padding: 15px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .botoes-acoes button {
+        width: 100%;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🖨️ Calculadora Impressão 3D Profissional</h1>
+
+    <div class="secao">
+      <h2>🏢 Dados da Empresa</h2>
+      <div class="grid-2">
+        <div class="campo">
+          <label>Nome da Empresa *</label>
+          <input type="text" id="nomeEmpresa" placeholder="Digite o nome da empresa">
+        </div>
+        <div class="campo">
+          <label>CNPJ/CPF</label>
+          <input type="text" id="cnpjEmpresa" placeholder="00.000.000/0000-00">
+        </div>
+        <div class="campo">
+          <label>Endereço</label>
+          <input type="text" id="enderecoEmpresa" placeholder="Rua, número, bairro, cidade">
+        </div>
+        <div class="campo">
+          <label>Telefone</label>
+          <input type="text" id="telefoneEmpresa" placeholder="(00) 00000-0000">
+        </div>
+        <div class="campo">
+          <label>E-mail</label>
+          <input type="email" id="emailEmpresa" placeholder="contato@empresa.com">
+        </div>
+        <div class="campo">
+          <label>Website</label>
+          <input type="text" id="websiteEmpresa" placeholder="www.empresa.com">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 20px;">
+        <div class="campo">
+          <label>Logo da Empresa (clique para adicionar)</label>
+          <div class="upload-logo" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" accept="image/*">
+            <img id="logoPreview" class="logo-preview" alt="Logo Preview">
+            <p id="logoText">📁 Clique para selecionar a logo (PNG, JPG, máx. 2MB)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h2>👤 Dados do Cliente</h2>
+      <div class="grid-2">
+        <div class="campo">
+          <label>Nome do Cliente *</label>
+          <input type="text" id="nomeCliente" placeholder="Digite o nome do cliente">
+        </div>
+        <div class="campo">
+          <label>Empresa do Cliente</label>
+          <input type="text" id="empresaCliente" placeholder="Nome da empresa">
+        </div>
+        <div class="campo">
+          <label>Telefone</label>
+          <input type="text" id="telefoneCliente" placeholder="(00) 00000-0000">
+        </div>
+        <div class="campo">
+          <label>E-mail</label>
+          <input type="email" id="emailCliente" placeholder="cliente@email.com">
+        </div>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h2>🔧 Especificações da Peça</h2>
+      <div class="grid-3">
+        <div class="campo">
+          <label>Nome da Peça *</label>
+          <input type="text" id="nomePeca" placeholder="Digite o nome da peça">
+        </div>
+        <div class="campo">
+          <label>Peso da Peça (g) *</label>
+          <input type="number" id="pesoPeca" placeholder="0">
+        </div>
+        <div class="campo">
+          <label>Tempo de Impressão *</label>
+          <input type="text" id="tempoImpressao" placeholder="ex: 2:05 ou 2.08">
+        </div>
+        <div class="campo">
+          <label>Material</label>
+          <select id="material">
+            <option value="PLA">PLA</option>
+            <option value="ABS">ABS</option>
+            <option value="PETG">PETG</option>
+            <option value="TPU">TPU</option>
+            <option value="Nylon">Nylon</option>
+            <option value="ASA">ASA</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Cor do Material</label>
+          <input type="text" id="corMaterial" placeholder="ex: Preto, Branco, Azul" value="Natural">
+        </div>
+        <div class="campo">
+          <label>Qualidade de Impressão</label>
+          <select id="qualidade">
+            <option value="Baixa (0.3mm)">Baixa (0.3mm)</option>
+            <option value="Média (0.2mm)" selected>Média (0.2mm)</option>
+            <option value="Alta (0.15mm)">Alta (0.15mm)</option>
+            <option value="Ultra (0.1mm)">Ultra (0.1mm)</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Quantidade</label>
+          <input type="number" id="quantidade" value="1" min="1">
+        </div>
+        <div class="campo">
+          <label>Desconto (%)</label>
+          <input type="number" id="descontoItem" value="0" min="0" max="100">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 15px;">
+        <div class="campo">
+          <label>Observações da Peça</label>
+          <textarea id="observacoesPeca" placeholder="Ex: suporte necessário, pós-processamento, etc."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h2>💰 Configuração de Custos</h2>
+      <div class="grid-4">
+        <div class="campo">
+          <label>Preço do Rolo (R$)</label>
+          <input type="number" id="precoRolo" value="65" step="0.01">
+        </div>
+        <div class="campo">
+          <label>Peso do Rolo (g)</label>
+          <input type="number" id="pesoRolo" value="1000">
+        </div>
+        <div class="campo">
+          <label>Consumo Impressora (W)</label>
+          <input type="number" id="consumoWatts" value="150">
+        </div>
+        <div class="campo">
+          <label>Valor do kWh (R$)</label>
+          <input type="number" id="valorKWh" value="0.80" step="0.01">
+        </div>
+        <div class="campo">
+          <label>Valor da Impressora (R$)</label>
+          <input type="number" id="valorImpressora" value="4000" step="0.01">
+        </div>
+        <div class="campo">
+          <label>Vida Útil (horas)</label>
+          <input type="number" id="vidaUtilHoras" value="2000">
+        </div>
+        <div class="campo">
+          <label>Tempo Fatiamento (min)</label>
+          <input type="number" id="tempoFatiamento" value="15">
+        </div>
+        <div class="campo">
+          <label>Tempo Acabamento (min)</label>
+          <input type="number" id="tempoAcabamento" value="15">
+        </div>
+        <div class="campo">
+          <label>Valor Hora Trabalho (R$)</label>
+          <input type="number" id="valorHoraTrabalho" value="40" step="0.01">
+        </div>
+        <div class="campo">
+          <label>Margem de Lucro (%)</label>
+          <input type="number" id="margemLucro" value="20" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <div class="alerta">
+      ⚠️ Campos marcados com * são obrigatórios. Campos em branco serão considerados como <strong>0</strong>.
+    </div>
+
+    <div class="botoes-acoes">
+      <button onclick="adicionarPeca()">➕ Adicionar Peça ao Orçamento</button>
+    </div>
+
+    <div class="secao">
+      <h2>📊 Tabela Técnica de Custos</h2>
+      <div class="tabela-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Material</th>
+              <th>Filamento (R$)</th>
+              <th>Energia (R$)</th>
+              <th>Depreciação (R$)</th>
+              <th>Mão de Obra (R$)</th>
+              <th>Subtotal (R$)</th>
+              <th>Final (R$)</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="corpoTecnico"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h2>📄 Orçamento para Cliente</h2>
+      <div class="grid-2" style="margin-bottom: 20px;">
+        <div class="campo">
+          <label>Condições de Pagamento</label>
+          <textarea id="condicoesPagamento" placeholder="Ex: 50% antecipado, 50% na entrega">À vista ou parcelado em até 3x</textarea>
+        </div>
+        <div class="campo">
+          <label>Prazo de Entrega</label>
+          <input type="text" id="prazoEntrega" placeholder="Ex: 5 dias úteis" value="7 dias úteis">
+        </div>
+        <div class="campo">
+          <label>Validade do Orçamento</label>
+          <input type="text" id="validadeOrcamento" placeholder="Ex: 30 dias" value="15 dias">
+        </div>
+        <div class="campo">
+          <label>Observações Gerais</label>
+          <textarea id="observacoesGerais" placeholder="Informações adicionais para o cliente"></textarea>
+        </div>
+      </div>
+      <div class="tabela-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Peça</th>
+              <th>Material</th>
+              <th>Peso (g)</th>
+              <th>Tempo</th>
+              <th>Qtd</th>
+              <th>Unit. (R$)</th>
+              <th>Total (R$)</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="corpoOrcamentoCliente"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="6"><strong>TOTAL DO ORÇAMENTO</strong></td>
+              <td colspan="2" id="orcamentoTotal">R$ 0,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="botoes-acoes">
+      <button onclick="gerarPDF()">📥 Gerar PDF Profissional</button>
+      <button class="secundario" onclick="resetarFormulario()">🗑️ Limpar Tudo</button>
+    </div>
+  </div>
+
+  <script>
+    let totalOrcamento = 0;
+    let pecas = [];
+    let logoBase64 = null;
+
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          alert('A logo deve ter no máximo 2MB');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          logoBase64 = event.target.result;
+          const preview = document.getElementById('logoPreview');
+          preview.src = logoBase64;
+          preview.classList.add('show');
+          document.getElementById('logoText').textContent = '✅ Logo carregada com sucesso';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function adicionarPeca() {
+      const nomeEmpresa = document.getElementById('nomeEmpresa').value.trim();
+      const nomeCliente = document.getElementById('nomeCliente').value.trim();
+      const nome = document.getElementById('nomePeca').value.trim();
+      
+      if (!nomeEmpresa) {
+        alert('Por favor, preencha o nome da empresa');
+        return;
+      }
+      if (!nomeCliente) {
+        alert('Por favor, preencha o nome do cliente');
+        return;
+      }
+      if (!nome) {
+        alert('Por favor, preencha o nome da peça');
+        return;
+      }
+
+      const peso = parseFloat(document.getElementById('pesoPeca').value) || 0;
+      const tempoRaw = (document.getElementById('tempoImpressao').value || "0").replace(",", ".");
+      const material = document.getElementById('material').value;
+      const cor = document.getElementById('corMaterial').value;
+      const qualidade = document.getElementById('qualidade').value;
+      const quantidade = parseInt(document.getElementById('quantidade').value) || 1;
+      const descontoItem = parseFloat(document.getElementById('descontoItem').value) || 0;
+      const observacoesPeca = document.getElementById('observacoesPeca').value;
+
+      const precoRolo = parseFloat(document.getElementById('precoRolo').value) || 0;
+      const pesoRolo = parseFloat(document.getElementById('pesoRolo').value) || 0;
+      const consumoWatts = parseFloat(document.getElementById('consumoWatts').value) || 0;
+      const valorKWh = parseFloat(document.getElementById('valorKWh').value) || 0;
+      const valorImpressora = parseFloat(document.getElementById('valorImpressora').value) || 0;
+      const vidaUtilHoras = parseFloat(document.getElementById('vidaUtilHoras').value) || 0;
+      const tempoFatiamento = parseFloat(document.getElementById('tempoFatiamento').value) || 0;
+      const tempoAcabamento = parseFloat(document.getElementById('tempoAcabamento').value) || 0;
+      const valorHoraTrabalho = parseFloat(document.getElementById('valorHoraTrabalho').value) || 0;
+      const margemLucro = parseFloat(document.getElementById('margemLucro').value) || 0;
+
+      let tempo = 0;
+      const tempoParts = tempoRaw.split(":");
+      if (tempoParts.length === 2) {
+        const horas = parseFloat(tempoParts[0]) || 0;
+        const minutos = parseFloat(tempoParts[1]) || 0;
+        tempo = horas + (minutos / 60);
+      } else {
+        tempo = parseFloat(tempoRaw) || 0;
+      }
+
+      const custoFilamento = pesoRolo ? (precoRolo / pesoRolo) * peso : 0;
+      const consumoKW = consumoWatts / 1000;
+      const custoEnergia = consumoKW * tempo * valorKWh;
+      const custoDepreciacao = vidaUtilHoras ? (valorImpressora / vidaUtilHoras) * tempo : 0;
+      const custoMaoObra = ((tempoFatiamento + tempoAcabamento) / 60) * valorHoraTrabalho;
+      const subtotal = custoFilamento + custoEnergia + custoDepreciacao + custoMaoObra;
+      const precoComMargem = subtotal * (1 + margemLucro / 100);
+      const precoUnitario = precoComMargem * (1 - descontoItem / 100);
+      const precoTotal = precoUnitario * quantidade;
+
+      const peca = {
+        nome,
+        peso,
+        tempo,
+        material,
+        cor,
+        qualidade,
+        quantidade,
+        observacoes: observacoesPeca,
+        custoFilamento,
+        custoEnergia,
+        custoDepreciacao,
+        custoMaoObra,
+        subtotal,
+        precoUnitario,
+        precoTotal,
+        desconto: descontoItem
+      };
+
+      pecas.push(peca);
+
+      const tbodyCliente = document.getElementById("corpoOrcamentoCliente");
+      const rowCliente = tbodyCliente.insertRow();
+      rowCliente.insertCell().textContent = nome;
+      rowCliente.insertCell().textContent = `${material} ${cor}`;
+      rowCliente.insertCell().textContent = peso;
+      rowCliente.insertCell().textContent = formatarTempoDecimal(tempo);
+      rowCliente.insertCell().textContent = quantidade;
+      rowCliente.insertCell().textContent = precoUnitario.toFixed(2);
+      rowCliente.insertCell().textContent = precoTotal.toFixed(2);
+      
+      const btnCellCliente = rowCliente.insertCell();
+      const btnCliente = document.createElement("button");
+      btnCliente.textContent = "Remover";
+      btnCliente.className = "btn-remover";
+      btnCliente.onclick = function () {
+        removerPeca(peca);
+      };
+      btnCellCliente.appendChild(btnCliente);
+
+      totalOrcamento += precoTotal;
+      document.getElementById("orcamentoTotal").textContent = "R$ " + totalOrcamento.toFixed(2);
+
+      const tecnica = document.getElementById("corpoTecnico");
+      const tRow = tecnica.insertRow();
+      tRow.insertCell().textContent = nome;
+      tRow.insertCell().textContent = `${material} ${cor}`;
+      tRow.insertCell().textContent = custoFilamento.toFixed(2);
+      tRow.insertCell().textContent = custoEnergia.toFixed(2);
+      tRow.insertCell().textContent = custoDepreciacao.toFixed(2);
+      tRow.insertCell().textContent = custoMaoObra.toFixed(2);
+      tRow.insertCell().textContent = subtotal.toFixed(2);
+      tRow.insertCell().textContent = precoTotal.toFixed(2);
+
+      const btnCell = tRow.insertCell();
+      const btn = document.createElement("button");
+      btn.textContent = "Remover";
+      btn.className = "btn-remover";
+      btn.onclick = function () {
+        removerPeca(peca);
+      };
+      btnCell.appendChild(btn);
+
+      limparCamposPeca();
+    }
+
+    function removerPeca(peca) {
+      const index = pecas.indexOf(peca);
+      if (index > -1) {
+        pecas.splice(index, 1);
+        totalOrcamento -= peca.precoTotal;
+        document.getElementById("orcamentoTotal").textContent = "R$ " + totalOrcamento.toFixed(2);
+        
+        document.getElementById("corpoOrcamentoCliente").deleteRow(index);
+        document.getElementById("corpoTecnico").deleteRow(index);
+      }
+    }
+
+    function limparCamposPeca() {
+      document.getElementById('nomePeca').value = '';
+      document.getElementById('pesoPeca').value = '';
+      document.getElementById('tempoImpressao').value = '';
+      document.getElementById('quantidade').value = '1';
+      document.getElementById('descontoItem').value = '0';
+      document.getElementById('observacoesPeca').value = '';
+    }
+
+    function resetarFormulario() {
+      if (!confirm('Deseja realmente limpar todos os dados?')) {
+        return;
+      }
+      
+      document.querySelectorAll('input:not([type="file"])').forEach(input => {
+        if (input.id !== 'precoRolo' && input.id !== 'pesoRolo' && input.id !== 'consumoWatts' && 
+            input.id !== 'valorKWh' && input.id !== 'valorImpressora' && input.id !== 'vidaUtilHoras' &&
+            input.id !== 'tempoFatiamento' && input.id !== 'tempoAcabamento' && input.id !== 'valorHoraTrabalho' &&
+            input.id !== 'margemLucro') {
+          input.value = '';
+        }
+      });
+      
+      document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.value = '';
+      });
+
+      document.getElementById('condicoesPagamento').value = 'À vista ou parcelado em até 3x';
+      document.getElementById('prazoEntrega').value = '7 dias úteis';
+      document.getElementById('validadeOrcamento').value = '15 dias';
+      document.getElementById('corMaterial').value = 'Natural';
+      document.getElementById('quantidade').value = '1';
+      document.getElementById('descontoItem').value = '0';
+
+      document.getElementById("corpoOrcamentoCliente").innerHTML = "";
+      document.getElementById("corpoTecnico").innerHTML = "";
+      document.getElementById("orcamentoTotal").textContent = "R$ 0,00";
+      totalOrcamento = 0;
+      pecas = [];
+    }
+
+    function gerarPDF() {
+      if (pecas.length === 0) {
+        alert('Adicione pelo menos uma peça ao orçamento');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      
+      const nomeEmpresa = document.getElementById('nomeEmpresa').value || 'Sua Empresa';
+      const cnpj = document.getElementById('cnpjEmpresa').value;
+      const endereco = document.getElementById('enderecoEmpresa').value;
+      const telefone = document.getElementById('telefoneEmpresa').value;
+      const email = document.getElementById('emailEmpresa').value;
+      const website = document.getElementById('websiteEmpresa').value;
+      
+      const nomeCliente = document.getElementById('nomeCliente').value;
+      const empresaCliente = document.getElementById('empresaCliente').value;
+      const telefoneCliente = document.getElementById('telefoneCliente').value;
+      const emailCliente = document.getElementById('emailCliente').value;
+
+      const condicoesPagamento = document.getElementById('condicoesPagamento').value;
+      const prazoEntrega = document.getElementById('prazoEntrega').value;
+      const validadeOrcamento = document.getElementById('validadeOrcamento').value;
+      const observacoesGerais = document.getElementById('observacoesGerais').value;
+
+      const hoje = new Date();
+      const dataEmissao = hoje.toLocaleDateString('pt-BR');
+      const numeroOrcamento = `ORC-${hoje.getFullYear()}${String(hoje.getMonth() + 1).padStart(2, '0')}${String(hoje.getDate()).padStart(2, '0')}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+
+      let y = 20;
+      const margemEsq = 15;
+      const margemDir = 195;
+      const larguraPagina = 180;
+
+      pdf.setDrawColor(102, 126, 234);
+      pdf.setLineWidth(0.5);
+      pdf.line(margemEsq, y, margemDir, y);
+      y += 3;
+
+      if (logoBase64) {
+        try {
+          pdf.addImage(logoBase64, 'PNG', margemEsq, y, 40, 20);
+        } catch (e) {
+          console.error('Erro ao adicionar logo');
+        }
+      }
+
+      pdf.setFontSize(20);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text(nomeEmpresa, logoBase64 ? 60 : margemEsq, y + 8);
+      
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(80, 80, 80);
+      let yEmpresa = y + 14;
+      if (cnpj) { pdf.text(`CNPJ: ${cnpj}`, logoBase64 ? 60 : margemEsq, yEmpresa); yEmpresa += 4; }
+      if (endereco) { pdf.text(endereco, logoBase64 ? 60 : margemEsq, yEmpresa); yEmpresa += 4; }
+      if (telefone) { pdf.text(`Tel: ${telefone}`, logoBase64 ? 60 : margemEsq, yEmpresa); yEmpresa += 4; }
+      if (email) { pdf.text(`Email: ${email}`, logoBase64 ? 60 : margemEsq, yEmpresa); yEmpresa += 4; }
+      if (website) { pdf.text(website, logoBase64 ? 60 : margemEsq, yEmpresa); }
+
+      y = Math.max(y + 25, yEmpresa + 2);
+      
+      pdf.setDrawColor(102, 126, 234);
+      pdf.setLineWidth(0.5);
+      pdf.line(margemEsq, y, margemDir, y);
+      y += 8;
+
+      pdf.setFontSize(18);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text('ORÇAMENTO', margemEsq, y);
+      
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(80, 80, 80);
+      pdf.text(`Nº ${numeroOrcamento}`, margemDir, y, { align: 'right' });
+      y += 6;
+      pdf.text(`Emissão: ${dataEmissao}`, margemDir, y, { align: 'right' });
+      y += 10;
+
+      pdf.setFillColor(240, 242, 245);
+      pdf.rect(margemEsq, y, larguraPagina, 25, 'F');
+      
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text('DADOS DO CLIENTE', margemEsq + 3, y + 6);
+      
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(60, 60, 60);
+      let yCliente = y + 11;
+      pdf.text(`Nome: ${nomeCliente}`, margemEsq + 3, yCliente);
+      if (empresaCliente) pdf.text(`Empresa: ${empresaCliente}`, margemEsq + 3, yCliente + 4);
+      if (telefoneCliente) pdf.text(`Tel: ${telefoneCliente}`, margemEsq + 95, yCliente);
+      if (emailCliente) pdf.text(`Email: ${emailCliente}`, margemEsq + 95, yCliente + 4);
+      
+      y += 30;
+
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text('ITENS DO ORÇAMENTO', margemEsq, y);
+      y += 8;
+
+      pdf.setFillColor(102, 126, 234);
+      pdf.rect(margemEsq, y, larguraPagina, 8, 'F');
+      
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('Item', margemEsq + 2, y + 5);
+      pdf.text('Material', margemEsq + 55, y + 5);
+      pdf.text('Peso', margemEsq + 90, y + 5);
+      pdf.text('Tempo', margemEsq + 110, y + 5);
+      pdf.text('Qtd', margemEsq + 132, y + 5);
+      pdf.text('Unit.', margemEsq + 148, y + 5);
+      pdf.text('Total', margemEsq + 170, y + 5);
+      y += 8;
+
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(60, 60, 60);
+      
+      pecas.forEach((peca, index) => {
+        if (y > 260) {
+          pdf.addPage();
+          y = 20;
+        }
+
+        if (index % 2 === 0) {
+          pdf.setFillColor(248, 249, 255);
+          pdf.rect(margemEsq, y, larguraPagina, 6, 'F');
+        }
+
+        pdf.setFontSize(8);
+        pdf.text(peca.nome.substring(0, 30), margemEsq + 2, y + 4);
+        pdf.text(`${peca.material} ${peca.cor}`, margemEsq + 55, y + 4);
+        pdf.text(`${peca.peso}g`, margemEsq + 90, y + 4);
+        pdf.text(formatarTempoDecimal(peca.tempo), margemEsq + 110, y + 4);
+        pdf.text(String(peca.quantidade), margemEsq + 135, y + 4);
+        pdf.text(`R$ ${peca.precoUnitario.toFixed(2)}`, margemEsq + 148, y + 4);
+        pdf.text(`R$ ${peca.precoTotal.toFixed(2)}`, margemEsq + 170, y + 4);
+        
+        y += 6;
+      });
+
+      pdf.setDrawColor(102, 126, 234);
+      pdf.setLineWidth(0.3);
+      pdf.line(margemEsq, y, margemDir, y);
+      y += 6;
+
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text('VALOR TOTAL:', margemEsq + 130, y);
+      pdf.text(`R$ ${totalOrcamento.toFixed(2)}`, margemEsq + 170, y);
+      y += 10;
+
+      pdf.setFillColor(240, 242, 245);
+      pdf.rect(margemEsq, y, larguraPagina, 28, 'F');
+      
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(102, 126, 234);
+      pdf.text('INFORMAÇÕES ADICIONAIS', margemEsq + 3, y + 6);
+      
+      pdf.setFontSize(8);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(60, 60, 60);
+      let yInfo = y + 11;
+      if (condicoesPagamento) {
+        pdf.text(`Pagamento: ${condicoesPagamento}`, margemEsq + 3, yInfo);
+        yInfo += 4;
+      }
+      if (prazoEntrega) {
+        pdf.text(`Prazo de Entrega: ${prazoEntrega}`, margemEsq + 3, yInfo);
+        yInfo += 4;
+      }
+      if (validadeOrcamento) {
+        pdf.text(`Validade do Orçamento: ${validadeOrcamento}`, margemEsq + 3, yInfo);
+      }
+      y += 32;
+
+      if (observacoesGerais) {
+        pdf.setFontSize(9);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(102, 126, 234);
+        pdf.text('Observações:', margemEsq, y);
+        y += 5;
+        
+        pdf.setFont(undefined, 'normal');
+        pdf.setTextColor(60, 60, 60);
+        const linhasObs = pdf.splitTextToSize(observacoesGerais, larguraPagina);
+        pdf.text(linhasObs, margemEsq, y);
+        y += linhasObs.length * 5 + 5;
+      }
+
+      if (y > 250) {
+        pdf.addPage();
+        y = 20;
+      }
+
+      y += 5;
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.2);
+      pdf.line(margemEsq, y, margemDir, y);
+      y += 8;
+
+      pdf.setFontSize(8);
+      pdf.setFont(undefined, 'italic');
+      pdf.setTextColor(120, 120, 120);
+      pdf.text('Este orçamento foi gerado automaticamente pela Calculadora de Impressão 3D', margemEsq, y);
+      y += 4;
+      pdf.text(`Documento gerado em ${dataEmissao}`, margemEsq, y);
+
+      const nomeArquivo = `orcamento_${nomeCliente.replace(/\s+/g, '_')}_${dataEmissao.replace(/\//g, '-')}.pdf`;
+      pdf.save(nomeArquivo);
+    }
+
+    function formatarTempoDecimal(decimal) {
+      const horas = Math.floor(decimal);
+      const minutos = Math.round((decimal - horas) * 60);
+      return `${horas}h${minutos.toString().padStart(2, '0')}min`;
+    }
+  </script>
+</body>
+
+</html>
